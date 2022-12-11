@@ -56,7 +56,6 @@ func Execute() error {
 	root.PersistentFlags().StringVarP(&verbosity, "verbosity", "v", logrus.InfoLevel.String(), "log level (debug, info, warn, error, fatal, panic")
 	root.PersistentFlags().StringVarP(&configFile, "config", "c", ".licenserc.yaml", "the config file")
 
-	root.AddCommand(Header)
 	root.AddCommand(Deps)
 
 	return root.Execute()

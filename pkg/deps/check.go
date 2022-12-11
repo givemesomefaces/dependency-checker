@@ -24,7 +24,6 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"eyes/assets"
 	"eyes/internal/logger"
 )
 
