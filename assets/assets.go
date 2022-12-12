@@ -15,33 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package commands
+package assets
 
 import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-
-	"eyes/internal/logger"
-	"eyes/pkg/deps"
+	"embed"
+	"io/fs"
+	"path/filepath"
 )
 
-var DepsCheckCommand = &cobra.Command{
-	Use:     "check",
-	Aliases: []string{"c"},
-	Long:    "resolves and check license compatibility in all dependencies of a module and their transitive dependencies",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		var errors []error
-		configDeps := Config.Dependencies()
-		if err := deps.Check(configDeps); err != nil {
-			errors = append(errors, err)
-		}
-		if len(errors) > 0 {
-			for _, err := range errors {
-				logger.Log.Error(err)
-			}
-			return fmt.Errorf("one or more errors occurred checking license compatibility")
-		}
-		return nil
-	},
+//go:embed *
+var assets embed.FS
+
+func Asset(file string) ([]byte, error) {
+	return assets.ReadFile(filepath.ToSlash(file))
+}
+
+func AssetDir(dir string) ([]fs.DirEntry, error) {
+	return assets.ReadDir(filepath.ToSlash(dir))
 }

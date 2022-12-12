@@ -18,6 +18,7 @@
 package deps
 
 import (
+	"eyes/assets"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -61,7 +62,7 @@ func init() {
 	}
 }
 
-func Check(mainLicenseSpdxID string, config *ConfigDeps) error {
+func Check(config *ConfigDeps) error {
 	matrix := matrices[mainLicenseSpdxID]
 
 	report := Report{}

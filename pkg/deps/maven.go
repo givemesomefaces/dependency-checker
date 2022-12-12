@@ -145,14 +145,6 @@ func (resolver *MavenPomResolver) LoadDependencies(config *ConfigDeps) ([]*Depen
 func (resolver *MavenPomResolver) ResolveDependencies(deps []*Dependency, config *ConfigDeps, report *Report) error {
 	for _, dep := range deps {
 		func() {
-			if l, ok := config.GetUserConfiguredLicense(dep.Name(), dep.Version); ok {
-				report.Resolve(&Result{
-					Dependency:    dep.Name(),
-					LicenseSpdxID: l,
-					Version:       dep.Version,
-				})
-				return
-			}
 			state := NotFound
 			err := resolver.ResolveLicense(config, &state, dep, report)
 			if err != nil {

@@ -29,22 +29,13 @@ import (
 const DefaultCoverageThreshold = 75
 
 type ConfigDeps struct {
-	Threshold int                 `yaml:"threshold"`
-	Files     []string            `yaml:"files"`
-	Licenses  []*ConfigDepLicense `yaml:"licenses"`
-	Excludes  []Exclude           `yaml:"excludes"`
+	Files        []string       `yaml:"files"`
+	Dependencies []Dependencies `yaml:"dependencies"`
 }
 
-type ConfigDepLicense struct {
+type Dependencies struct {
 	Name    string `yaml:"name"`
 	Version string `yaml:"version"`
-	License string `yaml:"license"`
-}
-
-type Exclude struct {
-	Name      string `yaml:"name"`
-	Version   string `yaml:"version"`
-	Recursive bool   `yaml:"recursive"`
 }
 
 func (config *ConfigDeps) Finalize(configFile string) error {
@@ -62,43 +53,5 @@ func (config *ConfigDeps) Finalize(configFile string) error {
 		}
 	}
 
-	if config.Threshold <= 0 {
-		config.Threshold = DefaultCoverageThreshold
-	}
-
 	return nil
-}
-
-func (config *ConfigDeps) GetUserConfiguredLicense(name, version string) (string, bool) {
-	for _, license := range config.Licenses {
-		if matched, _ := filepath.Match(license.Name, name); !matched && license.Name != name {
-			continue
-		}
-		if license.Version == "" {
-			return license.License, true
-		}
-		for _, v := range strings.Split(license.Version, ",") {
-			if v == version {
-				return license.License, true
-			}
-		}
-	}
-	return "", false
-}
-
-func (config *ConfigDeps) IsExcluded(name, version string) (exclude, recursive bool) {
-	for _, license := range config.Excludes {
-		if matched, _ := filepath.Match(license.Name, name); !matched && license.Name != name {
-			continue
-		}
-		if license.Version == "" {
-			return true, license.Recursive
-		}
-		for _, v := range strings.Split(license.Version, ",") {
-			if v == version {
-				return true, license.Recursive
-			}
-		}
-	}
-	return false, false
 }

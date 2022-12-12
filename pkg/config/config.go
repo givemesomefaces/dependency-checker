@@ -23,43 +23,11 @@ import (
 	"eyes/assets"
 	"eyes/internal/logger"
 	"eyes/pkg/deps"
-	"eyes/pkg/header"
-
 	"gopkg.in/yaml.v3"
 )
 
-type V1 struct {
-	Header header.ConfigHeader `yaml:"header"`
-	Deps   deps.ConfigDeps     `yaml:"dependency"`
-}
-
-func ParseV1(filename string, bytes []byte) (*V1, error) {
-	var config V1
-	if err := yaml.Unmarshal(bytes, &config); err != nil {
-		return nil, err
-	}
-
-	if err := config.Header.Finalize(); err != nil {
-		return nil, err
-	}
-
-	if err := config.Deps.Finalize(filename); err != nil {
-		return nil, err
-	}
-	return &config, nil
-}
-
-func (config *V1) Headers() []*header.ConfigHeader {
-	return []*header.ConfigHeader{&config.Header}
-}
-
-func (config *V1) Dependencies() *deps.ConfigDeps {
-	return &config.Deps
-}
-
 type V2 struct {
-	Header []*header.ConfigHeader `yaml:"header"`
-	Deps   deps.ConfigDeps        `yaml:"dependency"`
+	Deps deps.ConfigDeps `yaml:"dependency"`
 }
 
 func ParseV2(filename string, bytes []byte) (*V2, error) {
@@ -68,12 +36,6 @@ func ParseV2(filename string, bytes []byte) (*V2, error) {
 		return nil, err
 	}
 
-	for _, header := range config.Header {
-		if err := header.Finalize(); err != nil {
-			return nil, err
-		}
-	}
-
 	if err := config.Deps.Finalize(filename); err != nil {
 		return nil, err
 	}
@@ -81,16 +43,11 @@ func ParseV2(filename string, bytes []byte) (*V2, error) {
 	return &config, nil
 }
 
-func (config *V2) Headers() []*header.ConfigHeader {
-	return config.Header
-}
-
 func (config *V2) Dependencies() *deps.ConfigDeps {
 	return &config.Deps
 }
 
 type Config interface {
-	Headers() []*header.ConfigHeader
 	Dependencies() *deps.ConfigDeps
 }
 
@@ -116,9 +73,6 @@ func NewConfigFromFile(filename string) (Config, error) {
 	var config Config
 	if config, err = ParseV2(filename, bytes); err == nil {
 		return config, nil
-	}
-	if config, err = ParseV1(filename, bytes); err != nil {
-		return nil, err
 	}
 	return config, nil
 }
