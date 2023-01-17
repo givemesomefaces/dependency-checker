@@ -23,34 +23,37 @@ import (
 	"strings"
 )
 
-// DefaultCoverageThreshold is the minimum percentage of the file
-// that must contain license text for identifying a license.
-// Reference: https://github.com/golang/pkgsite/blob/d43359e3a135fc391960db4f5800eb081d658412/internal/licenses/licenses.go#L48
-const DefaultCoverageThreshold = 75
-
 type ConfigDeps struct {
-	Files        []string       `yaml:"files"`
-	Dependencies []Dependencies `yaml:"dependencies"`
+	BlackList []ConfigDependency `yaml:"black-list"`
+	Files     []string           `yaml:"files"`
 }
 
-type Dependencies struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
+type ConfigDependency struct {
+	GroupId    string `yaml:"groupId"`
+	ArtifactId string `yaml:"artifactId"`
+	Version    string `yaml:"version"`
 }
 
+func (dep *ConfigDependency) Name() string {
+	var names []string
+	if dep.GroupId != "" {
+		names = append(names, dep.GroupId)
+	}
+	if dep.ArtifactId != "" {
+		names = append(names, dep.ArtifactId)
+	}
+	if dep.Version != "" {
+		names = append(names, dep.Version)
+	}
+	return strings.Join(names, ":")
+}
 func (config *ConfigDeps) Finalize(configFile string) error {
-	configFileAbsPath, err := filepath.Abs(configFile)
+	_, err := filepath.Abs(configFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 		return err
-	}
-
-	for i, file := range config.Files {
-		if !strings.HasPrefix(file, "/") {
-			config.Files[i] = filepath.Join(filepath.Dir(configFileAbsPath), file)
-		}
 	}
 
 	return nil

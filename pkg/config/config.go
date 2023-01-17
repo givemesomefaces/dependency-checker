@@ -18,20 +18,20 @@
 package config
 
 import (
+	"gopkg.in/yaml.v3"
 	"os"
 
-	"eyes/assets"
-	"eyes/internal/logger"
-	"eyes/pkg/deps"
-	"gopkg.in/yaml.v3"
+	"eye/assets"
+	"eye/internal/logger"
+	"eye/pkg/deps"
 )
 
-type V2 struct {
+type DependencyYaml struct {
 	Deps deps.ConfigDeps `yaml:"dependency"`
 }
 
-func ParseV2(filename string, bytes []byte) (*V2, error) {
-	var config V2
+func Parse(filename string, bytes []byte) (*DependencyYaml, error) {
+	var config DependencyYaml
 	if err := yaml.Unmarshal(bytes, &config); err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func ParseV2(filename string, bytes []byte) (*V2, error) {
 	return &config, nil
 }
 
-func (config *V2) Dependencies() *deps.ConfigDeps {
+func (config *DependencyYaml) Dependencies() *deps.ConfigDeps {
 	return &config.Deps
 }
 
@@ -71,7 +71,7 @@ func NewConfigFromFile(filename string) (Config, error) {
 	}
 
 	var config Config
-	if config, err = ParseV2(filename, bytes); err == nil {
+	if config, err = Parse(filename, bytes); err == nil {
 		return config, nil
 	}
 	return config, nil

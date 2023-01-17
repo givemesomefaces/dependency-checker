@@ -27,9 +27,7 @@ type Resolver interface {
 }
 
 var Resolvers = []Resolver{
-	new(GoModResolver),
 	new(MavenPomResolver),
-	new(JarResolver),
 }
 
 func Resolve(config *ConfigDeps, report *Report) error {

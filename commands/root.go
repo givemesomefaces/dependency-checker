@@ -18,8 +18,8 @@
 package commands
 
 import (
-	"eyes/internal/logger"
-	"eyes/pkg/config"
+	"eye/internal/logger"
+	"eye/pkg/config"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -33,7 +33,7 @@ var (
 
 // root represents the base command when called without any subcommands
 var root = &cobra.Command{
-	Use:           "license-eye command [flags]",
+	Use:           "dep-eye command [flags]",
 	Long:          "A full-featured license guard to check and fix license headers and dependencies' licenses",
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -54,7 +54,7 @@ var root = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the root.
 func Execute() error {
 	root.PersistentFlags().StringVarP(&verbosity, "verbosity", "v", logrus.InfoLevel.String(), "log level (debug, info, warn, error, fatal, panic")
-	root.PersistentFlags().StringVarP(&configFile, "config", "c", ".licenserc.yaml", "the config file")
+	root.PersistentFlags().StringVarP(&configFile, "config", "c", ".dependency.yaml", "the config file")
 
 	root.AddCommand(Deps)
 

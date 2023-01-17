@@ -18,6 +18,7 @@
 package deps
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"sort"
@@ -26,64 +27,55 @@ import (
 
 type SpdxID string
 
-const (
-	Unknown string = "Unknown"
-)
-
 // Result is a single item that represents a resolved dependency license.
 type Result struct {
-	Dependency      string
-	LicenseFilePath string
-	LicenseContent  string
-	LicenseSpdxID   string
-	ResolveErrors   []error
-	Version         string
+	BlackDep  string
+	ParentDep string
 }
 
 // Report is a collection of resolved Result.
 type Report struct {
 	Resolved []*Result
-	Skipped  []*Result
 }
 
 // Resolve marks the dependency's license is resolved.
 func (report *Report) Resolve(result *Result) {
+	if result.ParentDep == "" {
+		result.ParentDep = "-"
+	}
 	report.Resolved = append(report.Resolved, result)
+	report.Resolved = removeDuplicate(report.Resolved)
 }
-
-// Skip marks the dependency's license is skipped for some reasons.
-func (report *Report) Skip(result *Result) {
-	report.Skipped = append(report.Skipped, result)
+func removeDuplicate(resultList []*Result) []*Result {
+	resultMap := map[string]bool{}
+	for _, v := range resultList {
+		data, _ := json.Marshal(v)
+		resultMap[string(data)] = true
+	}
+	var result []*Result
+	for k := range resultMap {
+		var t *Result
+		json.Unmarshal([]byte(k), &t)
+		result = append(result, t)
+	}
+	return result
 }
-
 func (report *Report) String() string {
 	sort.SliceStable(report.Resolved, func(i, j int) bool {
-		return report.Resolved[i].Dependency < report.Resolved[j].Dependency
-	})
-	sort.SliceStable(report.Skipped, func(i, j int) bool {
-		return report.Skipped[i].Dependency < report.Skipped[j].Dependency
+		return report.Resolved[i].BlackDep < report.Resolved[j].BlackDep
 	})
 
-	dWidth, lWidth, vWidth := .0, .0, .0
-	for _, r := range report.Skipped {
-		dWidth = math.Max(float64(len(r.Dependency)), dWidth)
-		lWidth = math.Max(float64(len(r.LicenseSpdxID)), lWidth)
-		vWidth = math.Max(float64(len(r.Version)), vWidth)
-	}
+	dWidth, lWidth := .0, .0
 	for _, r := range report.Resolved {
-		dWidth = math.Max(float64(len(r.Dependency)), dWidth)
-		lWidth = math.Max(float64(len(r.LicenseSpdxID)), lWidth)
-		vWidth = math.Max(float64(len(r.Version)), vWidth)
+		dWidth = math.Max(float64(len(r.BlackDep)), dWidth)
+		lWidth = math.Max(float64(len(r.ParentDep)), lWidth)
 	}
 
-	rowTemplate := fmt.Sprintf("%%-%dv | %%%dv | %%%dv\n", int(dWidth), int(lWidth), int(vWidth))
-	s := fmt.Sprintf(rowTemplate, "Dependency", "License", "Version")
-	s += fmt.Sprintf(rowTemplate, strings.Repeat("-", int(dWidth)), strings.Repeat("-", int(lWidth)), strings.Repeat("-", int(vWidth)))
+	rowTemplate := fmt.Sprintf("%%-%dv | %%%dv\n", int(dWidth), int(lWidth))
+	s := fmt.Sprintf(rowTemplate, "Black-List", "Path")
+	s += fmt.Sprintf(rowTemplate, strings.Repeat("-", int(dWidth)), strings.Repeat("-", int(lWidth)))
 	for _, r := range report.Resolved {
-		s += fmt.Sprintf(rowTemplate, r.Dependency, r.LicenseSpdxID, r.Version)
-	}
-	for _, r := range report.Skipped {
-		s += fmt.Sprintf(rowTemplate, r.Dependency, Unknown, r.Version)
+		s += fmt.Sprintf(rowTemplate, r.BlackDep, r.ParentDep)
 	}
 
 	return s

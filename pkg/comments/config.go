@@ -19,11 +19,10 @@ package comments
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"strings"
 
-	"eyes/assets"
-
-	"gopkg.in/yaml.v3"
+	"eye/assets"
 )
 
 type CommentStyle struct {

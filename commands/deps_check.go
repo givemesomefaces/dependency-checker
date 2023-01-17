@@ -18,30 +18,51 @@
 package commands
 
 import (
+	"eye/pkg/deps"
 	"fmt"
-
 	"github.com/spf13/cobra"
-
-	"eyes/internal/logger"
-	"eyes/pkg/deps"
+	"os"
+	"path/filepath"
 )
 
-var DepsCheckCommand = &cobra.Command{
+var outDir string
+var summaryTplPath string
+
+func init() {
+	DepsResolveCommand.PersistentFlags().StringVarP(&outDir, "output", "o", "",
+		"the directory to output the resolved dependencies' licenses, if not set the dependencies' licenses won't be saved")
+	DepsResolveCommand.PersistentFlags().StringVarP(&summaryTplPath, "summary", "s", "",
+		"the template file to write the summary of dependencies' licenses, a new file named \"LICENSE\" will be "+
+			"created in the same directory as the template file, to save the final summary.")
+}
+
+var DepsResolveCommand = &cobra.Command{
 	Use:     "check",
-	Aliases: []string{"c"},
-	Long:    "resolves and check license compatibility in all dependencies of a module and their transitive dependencies",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		var errors []error
-		configDeps := Config.Dependencies()
-		if err := deps.Check(configDeps); err != nil {
-			errors = append(errors, err)
-		}
-		if len(errors) > 0 {
-			for _, err := range errors {
-				logger.Log.Error(err)
+	Aliases: []string{"r"},
+	Long:    "check all dependencies of a module and their transitive dependencies",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if outDir != "" {
+			absPath, err := filepath.Abs(outDir)
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("one or more errors occurred checking license compatibility")
+			outDir = absPath
+			if err := os.MkdirAll(outDir, 0o700); err != nil && !os.IsExist(err) {
+				return err
+			}
 		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		report := deps.Report{}
+
+		configDeps := Config.Dependencies()
+		if err := deps.Resolve(configDeps, &report); err != nil {
+			return err
+		}
+
+		fmt.Println(report.String())
+
 		return nil
 	},
 }

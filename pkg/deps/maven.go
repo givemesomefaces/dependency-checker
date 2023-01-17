@@ -31,11 +31,10 @@ import (
 
 	"golang.org/x/net/html/charset"
 
-	"eyes/internal/logger"
+	"eye/internal/logger"
 )
 
 type MavenPomResolver struct {
-	JarResolver
 	maven string
 	repo  string
 }
@@ -146,66 +145,53 @@ func (resolver *MavenPomResolver) ResolveDependencies(deps []*Dependency, config
 	for _, dep := range deps {
 		func() {
 			state := NotFound
-			err := resolver.ResolveLicense(config, &state, dep, report)
+			err := resolver.CheckBlackList(config, dep, report)
 			if err != nil {
 				logger.Log.Warnf("Failed to resolve the license of <%s>: %v\n", dep.Name(), state.String())
-				report.Skip(&Result{
-					Dependency:    dep.Name(),
-					LicenseSpdxID: Unknown,
-					Version:       dep.Version,
-				})
 			}
 		}()
 	}
 	return nil
 }
 
-// ResolveLicense search all possible locations of the license, such as pom file, jar package
-func (resolver *MavenPomResolver) ResolveLicense(config *ConfigDeps, state *State, dep *Dependency, report *Report) error {
-	result1, err1 := resolver.ResolveJar(config, state, filepath.Join(resolver.repo, dep.Path(), dep.Jar()), dep.Version)
-	if result1 != nil {
-		result1.Dependency = dep.Name()
-		report.Resolve(result1)
-		return nil
+func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Dependency, report *Report) error {
+	hit := false
+	var hitBlackDep ConfigDependency
+	for _, blackDep := range config.BlackList {
+		hitBlackDep = blackDep
+		blackDepGroupIdRegexp := regexp.MustCompile(blackDep.GroupId)
+		if blackDepGroupIdRegexp != nil && blackDepGroupIdRegexp.MatchString(dep.GroupId) {
+			if blackDep.ArtifactId == "" {
+				hit = true
+				break
+			} else {
+				blackDepArtifactIdRegexp := regexp.MustCompile(blackDep.ArtifactId)
+				if blackDep.Version == "" &&
+					blackDepArtifactIdRegexp != nil &&
+					blackDepArtifactIdRegexp.MatchString(dep.ArtifactId) {
+					hit = true
+					break
+				}
+				blackDepVersionRegexp := regexp.MustCompile(blackDep.Version)
+				if blackDep.Version != "" &&
+					blackDepArtifactIdRegexp != nil &&
+					blackDepArtifactIdRegexp.MatchString(dep.ArtifactId) &&
+					blackDepVersionRegexp != nil &&
+					blackDepVersionRegexp.MatchString(dep.Version) {
+					hit = true
+					break
+				}
+			}
+
+		}
 	}
-
-	result2, err2 := resolver.ResolveLicenseFromPom(config, state, dep)
-	if result2 != nil {
-		report.Resolve(result2)
-		return nil
+	if hit {
+		report.Resolve(&Result{
+			BlackDep:  hitBlackDep.Name(),
+			ParentDep: dep.Parent,
+		})
 	}
-
-	return fmt.Errorf("failed to resolve license for <%s> from jar or pom: %+v, %+v", dep.Name(), err1, err2)
-}
-
-// ResolveLicenseFromPom search for license in the pom file, which may appear in the header comments or in license element of xml
-func (resolver *MavenPomResolver) ResolveLicenseFromPom(config *ConfigDeps, state *State, dep *Dependency) (*Result, error) {
-	pomFile := filepath.Join(resolver.repo, dep.Path(), dep.Pom())
-
-	pom, err := resolver.ReadLicensesFromPom(pomFile)
-	if err != nil {
-		return nil, err
-	}
-
-	if pom != nil && len(pom.Licenses) != 0 {
-		return &Result{
-			Dependency:      dep.Name(),
-			LicenseFilePath: pomFile,
-			LicenseContent:  pom.Raw(),
-			LicenseSpdxID:   pom.AllLicenses(config),
-			Version:         dep.Version,
-		}, nil
-	}
-
-	headerComments, err := resolver.ReadHeaderCommentsFromPom(pomFile)
-	if err != nil {
-		return nil, err
-	} else if headerComments != "" {
-		*state |= FoundLicenseInPomHeader
-		return resolver.IdentifyLicense(config, pomFile, dep.Name(), headerComments, dep.Version)
-	}
-
-	return nil, fmt.Errorf("not found in pom file")
+	return nil
 }
 
 func (resolver *MavenPomResolver) ReadLicensesFromPom(pomFile string) (*PomFile, error) {
@@ -276,6 +262,9 @@ func SeemLicense(content string) bool {
 
 func LoadDependencies(data []byte, config *ConfigDeps) []*Dependency {
 	depsTree := LoadDependenciesTree(data)
+	for _, dependency := range depsTree {
+		logger.Log.Warnf("dependency  %v\n", dependency.AllName())
+	}
 
 	cnt := 0
 	for _, dep := range depsTree {
@@ -284,34 +273,16 @@ func LoadDependencies(data []byte, config *ConfigDeps) []*Dependency {
 
 	deps := make([]*Dependency, 0, cnt)
 
-	queue := []*Dependency{}
+	var queue []*Dependency
 	for _, depTree := range depsTree {
-		if exclude, recursive := config.IsExcluded(depTree.Name(), depTree.Version); !exclude {
-			queue = append(queue, depTree)
-		} else if recursive {
-			continue
-		} else {
-			queue = append(queue, depTree.TransitiveDeps...)
-		}
+		queue = append(queue, depTree)
 
 		for len(queue) > 0 {
 			dep := queue[0]
 			queue = queue[1:]
 
-			exclude, recursive := config.IsExcluded(dep.Name(), dep.Version)
-			if exclude && recursive {
-				continue
-			}
-
-			if !exclude {
-				deps = append(deps, dep.Clone())
-				queue = append(queue, dep.TransitiveDeps...)
-				continue
-			}
-
-			if !recursive {
-				queue = append(queue, dep.TransitiveDeps...)
-			}
+			deps = append(deps, dep.Clone())
+			queue = append(queue, dep.TransitiveDeps...)
 		}
 	}
 	return deps
@@ -326,16 +297,16 @@ func LoadDependenciesTree(data []byte) []*Dependency {
 	stack := []Elem{}
 	unique := make(map[string]struct{})
 
-	reFind := regexp.MustCompile(`(?im)^.*? ([| ]*)(\+-|\\-) (?P<gid>\b.+?):(?P<aid>\b.+?):(?P<packaging>\b.+)(:\b.+)?:(?P<version>\b.+):(?P<scope>\b.+?)(?P<optional>\b.+?)?$`) //nolint:lll // can't break down regex
+	reFind := regexp.MustCompile(`(?im)^.*? ([| ]*)(\+-|\\-) (?P<gid>\b.+?):(?P<aid>\b.+?):(?P<packaging>\b.+)(:\b.+)?:(?P<Version>\b.+):(?P<scope>\b.+?)(?P<optional>\b.+?)?$`) //nolint:lll // can't break down regex
 	rawDeps := reFind.FindAllSubmatch(data, -1)
 
 	deps := make([]*Dependency, 0, len(rawDeps))
 	for _, rawDep := range rawDeps {
 		dep := &Dependency{
-			GroupID:    string(rawDep[reFind.SubexpIndex("gid")]),
-			ArtifactID: string(rawDep[reFind.SubexpIndex("aid")]),
+			GroupId:    string(rawDep[reFind.SubexpIndex("gid")]),
+			ArtifactId: string(rawDep[reFind.SubexpIndex("aid")]),
 			Packaging:  string(rawDep[reFind.SubexpIndex("packaging")]),
-			Version:    string(rawDep[reFind.SubexpIndex("version")]),
+			Version:    string(rawDep[reFind.SubexpIndex("Version")]),
 			Scope:      string(rawDep[reFind.SubexpIndex("scope")]),
 		}
 
@@ -367,9 +338,11 @@ func LoadDependenciesTree(data []byte) []*Dependency {
 
 		if level == tail.level {
 			stack[len(stack)-1] = Elem{dep, level}
+			dep.AppendParent(stack[len(stack)-2].Dependency)
 			stack[len(stack)-2].TransitiveDeps = append(stack[len(stack)-2].TransitiveDeps, dep)
 		} else {
 			stack = append(stack, Elem{dep, level})
+			dep.AppendParent(tail.Dependency)
 			tail.TransitiveDeps = append(tail.TransitiveDeps, dep)
 		}
 
@@ -410,17 +383,18 @@ func (s *State) String() string {
 }
 
 type Dependency struct {
-	GroupID, ArtifactID, Version, Packaging, Scope string
-	TransitiveDeps                                 []*Dependency
+	GroupId, ArtifactId, Version, Packaging, Scope, Parent string
+	TransitiveDeps                                         []*Dependency
 }
 
 func (dep *Dependency) Clone() *Dependency {
 	return &Dependency{
-		GroupID:    dep.GroupID,
-		ArtifactID: dep.ArtifactID,
+		GroupId:    dep.GroupId,
+		ArtifactId: dep.ArtifactId,
 		Version:    dep.Version,
 		Packaging:  dep.Packaging,
 		Scope:      dep.Scope,
+		Parent:     dep.Parent,
 	}
 }
 
@@ -433,34 +407,39 @@ func (dep *Dependency) Count() int {
 }
 
 func (dep *Dependency) Path() string {
-	return fmt.Sprintf("%v/%v/%v", strings.ReplaceAll(dep.GroupID, ".", "/"), dep.ArtifactID, dep.Version)
+	return fmt.Sprintf("%v/%v/%v", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version)
 }
 
 func (dep *Dependency) Pom() string {
-	return fmt.Sprintf("%v-%v.pom", dep.ArtifactID, dep.Version)
+	return fmt.Sprintf("%v-%v.pom", dep.ArtifactId, dep.Version)
 }
 
 func (dep *Dependency) Jar() string {
-	return fmt.Sprintf("%v-%v.jar", dep.ArtifactID, dep.Version)
+	return fmt.Sprintf("%v-%v.jar", dep.ArtifactId, dep.Version)
 }
 
 func (dep *Dependency) Name() string {
-	return fmt.Sprintf("%v:%v", dep.GroupID, dep.ArtifactID)
+	return fmt.Sprintf("%v:%v", dep.GroupId, dep.ArtifactId)
+}
+
+func (dep *Dependency) AllName() string {
+	return fmt.Sprintf("%v:%v:%v", dep.GroupId, dep.ArtifactId, dep.Version)
+}
+
+func (dep *Dependency) AppendParent(parentDep *Dependency) {
+	if parentDep != nil {
+		if parentDep.Parent != "" {
+			dep.Parent = parentDep.Parent + " -> " + parentDep.AllName()
+		} else {
+			dep.Parent = parentDep.AllName()
+		}
+	}
 }
 
 // PomFile is used to extract license from the pom.xml file
 type PomFile struct {
 	XMLName  xml.Name      `xml:"project"`
 	Licenses []*XMLLicense `xml:"licenses>license,omitempty"`
-}
-
-// AllLicenses return all licenses found in pom.xml file
-func (pom *PomFile) AllLicenses(config *ConfigDeps) string {
-	licenses := []string{}
-	for _, l := range pom.Licenses {
-		licenses = append(licenses, l.Item(config))
-	}
-	return strings.Join(licenses, " and ")
 }
 
 // Raw return raw data

@@ -1,10 +1,8 @@
-# 排查依赖
-dependence:
-  # 依赖文件
+dependency:
   files:
-
-  # 检查是否包含以下依赖
-  dependencies:
-
-
-
+    - pom.xml
+  black-list:
+    - groupId: junit
+    - groupId: com.alibaba.*
+      artifactId: fastjson
+      version:
