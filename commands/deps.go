@@ -29,5 +29,5 @@ var Deps = &cobra.Command{
 }
 
 func init() {
-	Deps.AddCommand(DepsResolveCommand)
+	Deps.AddCommand(DepsCheckCommand)
 }

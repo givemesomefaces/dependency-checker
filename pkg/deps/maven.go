@@ -147,7 +147,7 @@ func (resolver *MavenPomResolver) ResolveDependencies(deps []*Dependency, config
 			state := NotFound
 			err := resolver.CheckBlackList(config, dep, report)
 			if err != nil {
-				logger.Log.Warnf("Failed to resolve the license of <%s>: %v\n", dep.Name(), state.String())
+				logger.Log.Warnf("Failed to check the dependency of <%s>: %v\n", dep.Name(), state.String())
 			}
 		}()
 	}
@@ -186,7 +186,7 @@ func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Depend
 		}
 	}
 	if hit {
-		report.Resolve(&Result{
+		report.Resolve(&HitResult{
 			BlackDep:  hitBlackDep.Name(),
 			ParentDep: dep.Parent,
 		})
@@ -263,7 +263,7 @@ func SeemLicense(content string) bool {
 func LoadDependencies(data []byte, config *ConfigDeps) []*Dependency {
 	depsTree := LoadDependenciesTree(data)
 	for _, dependency := range depsTree {
-		logger.Log.Warnf("dependency  %v\n", dependency.AllName())
+		logger.Log.Debugf("dependencies:\n %v\n", dependency.AllName())
 	}
 
 	cnt := 0

@@ -27,46 +27,46 @@ import (
 
 type SpdxID string
 
-// Result is a single item that represents a resolved dependency license.
-type Result struct {
+// HitResult is a single item that represents a resolved dependency license.
+type HitResult struct {
 	BlackDep  string
 	ParentDep string
 }
 
-// Report is a collection of resolved Result.
+// Report is a collection of resolved HitResult.
 type Report struct {
-	Resolved []*Result
+	Hit []*HitResult
 }
 
 // Resolve marks the dependency's license is resolved.
-func (report *Report) Resolve(result *Result) {
+func (report *Report) Resolve(result *HitResult) {
 	if result.ParentDep == "" {
 		result.ParentDep = "-"
 	}
-	report.Resolved = append(report.Resolved, result)
-	report.Resolved = removeDuplicate(report.Resolved)
+	report.Hit = append(report.Hit, result)
+	report.Hit = removeDuplicate(report.Hit)
 }
-func removeDuplicate(resultList []*Result) []*Result {
+func removeDuplicate(resultList []*HitResult) []*HitResult {
 	resultMap := map[string]bool{}
 	for _, v := range resultList {
 		data, _ := json.Marshal(v)
 		resultMap[string(data)] = true
 	}
-	var result []*Result
+	var result []*HitResult
 	for k := range resultMap {
-		var t *Result
+		var t *HitResult
 		json.Unmarshal([]byte(k), &t)
 		result = append(result, t)
 	}
 	return result
 }
 func (report *Report) String() string {
-	sort.SliceStable(report.Resolved, func(i, j int) bool {
-		return report.Resolved[i].BlackDep < report.Resolved[j].BlackDep
+	sort.SliceStable(report.Hit, func(i, j int) bool {
+		return report.Hit[i].BlackDep < report.Hit[j].BlackDep
 	})
 
 	dWidth, lWidth := .0, .0
-	for _, r := range report.Resolved {
+	for _, r := range report.Hit {
 		dWidth = math.Max(float64(len(r.BlackDep)), dWidth)
 		lWidth = math.Max(float64(len(r.ParentDep)), lWidth)
 	}
@@ -74,7 +74,7 @@ func (report *Report) String() string {
 	rowTemplate := fmt.Sprintf("%%-%dv | %%%dv\n", int(dWidth), int(lWidth))
 	s := fmt.Sprintf(rowTemplate, "Black-List", "Path")
 	s += fmt.Sprintf(rowTemplate, strings.Repeat("-", int(dWidth)), strings.Repeat("-", int(lWidth)))
-	for _, r := range report.Resolved {
+	for _, r := range report.Hit {
 		s += fmt.Sprintf(rowTemplate, r.BlackDep, r.ParentDep)
 	}
 

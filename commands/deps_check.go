@@ -29,14 +29,14 @@ var outDir string
 var summaryTplPath string
 
 func init() {
-	DepsResolveCommand.PersistentFlags().StringVarP(&outDir, "output", "o", "",
+	DepsCheckCommand.PersistentFlags().StringVarP(&outDir, "output", "o", "",
 		"the directory to output the resolved dependencies' licenses, if not set the dependencies' licenses won't be saved")
-	DepsResolveCommand.PersistentFlags().StringVarP(&summaryTplPath, "summary", "s", "",
+	DepsCheckCommand.PersistentFlags().StringVarP(&summaryTplPath, "summary", "s", "",
 		"the template file to write the summary of dependencies' licenses, a new file named \"LICENSE\" will be "+
 			"created in the same directory as the template file, to save the final summary.")
 }
 
-var DepsResolveCommand = &cobra.Command{
+var DepsCheckCommand = &cobra.Command{
 	Use:     "check",
 	Aliases: []string{"r"},
 	Long:    "check all dependencies of a module and their transitive dependencies",
@@ -60,9 +60,10 @@ var DepsResolveCommand = &cobra.Command{
 		if err := deps.Resolve(configDeps, &report); err != nil {
 			return err
 		}
-
-		fmt.Println(report.String())
-
+		if len(report.Hit) != 0 {
+			fmt.Println(report.String())
+			return fmt.Errorf("found %d dependencies hit the blacklist", len(report.Hit))
+		}
 		return nil
 	},
 }

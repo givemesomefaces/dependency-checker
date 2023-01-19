@@ -18,6 +18,7 @@
 package deps
 
 import (
+	"eye/internal/logger"
 	"fmt"
 )
 
@@ -37,6 +38,7 @@ resolveFile:
 			if !resolver.CanResolve(file) {
 				continue
 			}
+			logger.Log.Infof("Start checking dependencies, please wait!")
 			if err := resolver.Resolve(file, config, report); err != nil {
 				return err
 			}
@@ -44,6 +46,6 @@ resolveFile:
 		}
 		return fmt.Errorf("unable to find a resolver to resolve dependency declaration file: %v", file)
 	}
-
+	logger.Log.Infof("Checking dependencies completed!")
 	return nil
 }
