@@ -2,7 +2,7 @@
 A little tool to check dependencies
 
 ## How to use
-download by https://github.com/lv-lifeng/eye/releases or make build by source code
+download by [releases](https://github.com/lv-lifeng/eye/releases) or make build by source code
 ```shell
 git clone git@github.com:lv-lifeng/eye.git
 cd eye
