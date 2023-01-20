@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
-	"eye/internal/logger"
 	"fmt"
 	"io/fs"
 	"os"
@@ -142,7 +141,7 @@ func TestResolveMaven(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			logger.Log.Infof("result:\n%v", report.String())
+			fmt.Println(report.String())
 
 			/*if len(report.Hit) != test.cnt {
 				t.Errorf("the expected number of jar packages is: %d, but actually: %d. result:\n%v", test.cnt, len(report.Hit), report.String())

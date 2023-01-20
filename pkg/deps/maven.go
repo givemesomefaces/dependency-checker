@@ -160,7 +160,9 @@ func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Depend
 	for _, blackDep := range config.BlackList {
 		hitBlackDep = blackDep
 		blackDepGroupIdRegexp := regexp.MustCompile(blackDep.GroupId)
-		if blackDepGroupIdRegexp != nil && blackDepGroupIdRegexp.MatchString(dep.GroupId) {
+		if blackDep.GroupId != "" &&
+			blackDepGroupIdRegexp != nil &&
+			blackDepGroupIdRegexp.MatchString(dep.GroupId) {
 			if blackDep.ArtifactId == "" {
 				hit = true
 				break
@@ -168,14 +170,17 @@ func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Depend
 				blackDepArtifactIdRegexp := regexp.MustCompile(blackDep.ArtifactId)
 				if blackDep.Version == "" &&
 					blackDepArtifactIdRegexp != nil &&
+					blackDep.ArtifactId != "" &&
 					blackDepArtifactIdRegexp.MatchString(dep.ArtifactId) {
 					hit = true
 					break
 				}
 				blackDepVersionRegexp := regexp.MustCompile(blackDep.Version)
 				if blackDep.Version != "" &&
+					blackDep.ArtifactId != "" &&
 					blackDepArtifactIdRegexp != nil &&
 					blackDepArtifactIdRegexp.MatchString(dep.ArtifactId) &&
+					dep.Version != "" &&
 					blackDepVersionRegexp != nil &&
 					blackDepVersionRegexp.MatchString(dep.Version) {
 					hit = true
@@ -262,9 +267,6 @@ func SeemLicense(content string) bool {
 
 func LoadDependencies(data []byte, config *ConfigDeps) []*Dependency {
 	depsTree := LoadDependenciesTree(data)
-	for _, dependency := range depsTree {
-		logger.Log.Debugf("dependencies:\n %v\n", dependency.AllName())
-	}
 
 	cnt := 0
 	for _, dep := range depsTree {

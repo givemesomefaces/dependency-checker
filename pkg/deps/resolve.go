@@ -46,6 +46,5 @@ resolveFile:
 		}
 		return fmt.Errorf("unable to find a resolver to resolve dependency declaration file: %v", file)
 	}
-	logger.Log.Infof("Checking dependencies completed!")
 	return nil
 }

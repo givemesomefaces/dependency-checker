@@ -18,6 +18,7 @@
 package commands
 
 import (
+	"eye/internal/logger"
 	"eye/pkg/deps"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -31,9 +32,12 @@ var DepsCheckCommand = &cobra.Command{
 		report := deps.Report{}
 
 		configDeps := Config.Dependencies()
-		if err := deps.Resolve(configDeps, &report); err != nil {
-			return err
+		if len(configDeps.BlackList) != 0 {
+			if err := deps.Resolve(configDeps, &report); err != nil {
+				return err
+			}
 		}
+		logger.Log.Infof("Checking dependencies completed!")
 		if len(report.Hit) != 0 {
 			fmt.Println(report.String())
 			return fmt.Errorf("found %d dependencies hit the blacklist", len(report.Hit))
