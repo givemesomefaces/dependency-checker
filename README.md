@@ -2,13 +2,19 @@
 A little tool to check dependencies
 
 ## How to use
+download by https://github.com/lv-lifeng/eye/releases or make build by source code
 ```shell
+git clone git@github.com:lv-lifeng/eye.git
 cd eye
 make build 
+```
 
-# Execute the following command in specified directory, this directory is the root directory of the project to be checked
+Execute the following command in specified directory, this directory is the root directory of the project to be checked
+```shell
 %PATH%/eye/bin/linux/dep-eye dependency(d/dep) check
-# or add %PATH%/eye/bin/linux to the environment variable and execute the following command everywhere.
+```
+or add %PATH%/eye/bin/linux to the environment variable and execute the following command everywhere.
+```shell
 dep-eye dependency(d/dep) check
 ```
 
