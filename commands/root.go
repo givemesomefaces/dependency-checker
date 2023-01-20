@@ -34,7 +34,7 @@ var (
 // root represents the base command when called without any subcommands
 var root = &cobra.Command{
 	Use:           "dep-eye command [flags]",
-	Long:          "A full-featured license guard to check and fix license headers and dependencies' licenses",
+	Long:          "A little tool to check dependencies",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

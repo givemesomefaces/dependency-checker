@@ -16,7 +16,7 @@
 # under the License.
 
 name: Dependency Eye
-description: A full-featured dependency tool to check dependencies.
+description: A little tool to check dependencies.
 branding:
   icon: book
   color: orange

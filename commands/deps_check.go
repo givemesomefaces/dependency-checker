@@ -21,38 +21,12 @@ import (
 	"eye/pkg/deps"
 	"fmt"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
 )
-
-var outDir string
-var summaryTplPath string
-
-func init() {
-	DepsCheckCommand.PersistentFlags().StringVarP(&outDir, "output", "o", "",
-		"the directory to output the resolved dependencies' licenses, if not set the dependencies' licenses won't be saved")
-	DepsCheckCommand.PersistentFlags().StringVarP(&summaryTplPath, "summary", "s", "",
-		"the template file to write the summary of dependencies' licenses, a new file named \"LICENSE\" will be "+
-			"created in the same directory as the template file, to save the final summary.")
-}
 
 var DepsCheckCommand = &cobra.Command{
 	Use:     "check",
 	Aliases: []string{"r"},
 	Long:    "check all dependencies of a module and their transitive dependencies",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if outDir != "" {
-			absPath, err := filepath.Abs(outDir)
-			if err != nil {
-				return err
-			}
-			outDir = absPath
-			if err := os.MkdirAll(outDir, 0o700); err != nil && !os.IsExist(err) {
-				return err
-			}
-		}
-		return nil
-	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report := deps.Report{}
 

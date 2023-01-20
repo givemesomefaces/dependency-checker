@@ -23,7 +23,7 @@ import (
 
 var Deps = &cobra.Command{
 	Use:     "dependency",
-	Aliases: []string{"d", "deps", "dep", "dependencies"},
+	Aliases: []string{"d", "dep"},
 	Short:   "Dependencies related commands; e.g. check, etc.",
 	Long:    "deps command checks all dependencies of a module and their transitive dependencies.",
 }
