@@ -3,9 +3,6 @@ dependency:
     - pom.xml
   black-list:
     - groupId: junit
-    - groupId: com.rabbitpre.tubit
-      artifactId: tubit-orm-spring-boot-starter
-      version:
     - groupId: com.alibaba
       artifactId: fastjson
       version:
