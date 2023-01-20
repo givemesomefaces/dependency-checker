@@ -3,7 +3,7 @@ A little tool to check dependencies
 
 ## How to use
 
-add `.dependency.yaml` file to the root directory of your project and add the following, if it does not exist, the default file `default-config.yaml` will be used.
+add `.dependency.yaml` file to the root directory of your project and add the following, if it does not exist, the default file `assets/default-config.yaml` will be used.
 ```yaml
 dependency:
   files:
