@@ -32,7 +32,7 @@ git clone git@github.com:lv-lifeng/eye.git
 cd eye
 make build 
 ```
-You can modify the `eye/assets/default-config.yaml` file (it must be rebuilt after each modification to take effect), if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `default-config.yaml` will be used, 
+You can modify the `eye/assets/default-config.yaml`(not recommended) file (it must be rebuilt after each modification to take effect), if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `default-config.yaml` will be used, 
 
 
 
