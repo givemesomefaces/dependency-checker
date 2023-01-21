@@ -3,7 +3,9 @@ A little tool to check dependencies
 
 ## How to use
 
-add `.dependency.yaml` file to the root directory of your project and add the following, if it does not exist, the default file `assets/default-config.yaml` will be used.
+
+### download [release](https://github.com/lv-lifeng/eye/releases)
+Add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
 ```yaml
 dependency:
   files:
@@ -14,24 +16,27 @@ dependency:
       artifactId: fastjson
       version:
 ```
+Execute the following command in specified directory
+```shell
+%PATH%/eye/bin/linux/dep-eye dependency(d/dep) -c /User/test.yaml check
+```
+or add `%PATH%/eye/bin/linux` to the environment variable and execute the following command everywhere.
+```shell
+dep-eye dependency(d/dep) -c /User/test.yaml check
+```
+If you do not specify the `-c` parameter, the `.dependency.yaml` in the current directory will be used.
 
-compile from source
+### compile from source
 ```shell
 git clone git@github.com:lv-lifeng/eye.git
 cd eye
 make build 
 ```
+You can modify the `eye/assets/default-config.yaml` file (it must be rebuilt after each modification to take effect), if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `default-config.yaml` will be used, 
 
-Execute the following command in specified directory, this directory is the root directory of the project to be checked
-```shell
-%PATH%/eye/bin/linux/dep-eye dependency(d/dep) check
-```
-or add `%PATH%/eye/bin/linux` to the environment variable and execute the following command everywhere.
-```shell
-dep-eye dependency(d/dep) check
-```
 
-check result:
+
+### check result
 ```shell
 dep-eye d check
 INFO Loading configuration from file: .dependency.yaml 
