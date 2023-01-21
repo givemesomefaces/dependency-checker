@@ -24,7 +24,7 @@ or add `%PATH%/eye/bin/linux` to the environment variable and execute the follow
 ```shell
 dep-eye dependency(d/dep) -c /User/test.yaml check
 ```
-If you do not specify the `-c` parameter, the `.dependency.yaml` in the current directory will be used.
+if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `dependency-default.yaml` will be used,
 
 ### compile from source
 ```shell
@@ -32,15 +32,13 @@ git clone git@github.com:lv-lifeng/eye.git
 cd eye
 make build 
 ```
-You can modify the `eye/assets/default-config.yaml`(not recommended) file (it must be rebuilt after each modification to take effect), if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `default-config.yaml` will be used, 
-
-
+the command same as [download release](#download-releasehttpsgithubcomlv-lifengeyereleases)
 
 ### check result
 ```shell
 dep-eye d check
 INFO Loading configuration from file: .dependency.yaml 
-INFO Config file .dependency.yaml does not exist, using the default config 
+INFO Config file .dependency.yaml does not exist, using the default config: eye/dependency-default.yaml 
 INFO Start checking dependencies, please wait!    
 Black-List           |                                                                                  Path
 -------------------- | -------------------------------------------------------------------------------------

@@ -129,7 +129,7 @@ func TestResolveMaven(t *testing.T) {
 			t.Error(err)
 		}
 
-		config, err := config.NewConfigFromFile(filepath.Join(test.workingDir, "dependency.yaml"))
+		configFromFile, err := config.NewConfigFromFile(filepath.Join(test.workingDir, "dependency.yaml"))
 		if err != nil {
 			t.Error(err)
 		}
@@ -137,15 +137,11 @@ func TestResolveMaven(t *testing.T) {
 		pomFile := filepath.Join(test.workingDir, "pom.xml")
 		if resolver.CanResolve(pomFile) {
 			report := deps.Report{}
-			if err := resolver.Resolve(pomFile, config.Dependencies(), &report); err != nil {
+			if err := resolver.Resolve(pomFile, configFromFile.Dependencies(), &report); err != nil {
 				t.Error(err)
 				return
 			}
 			fmt.Println(report.String())
-
-			/*if len(report.Hit) != test.cnt {
-				t.Errorf("the expected number of jar packages is: %d, but actually: %d. result:\n%v", test.cnt, len(report.Hit), report.String())
-			}*/
 		}
 	}
 }

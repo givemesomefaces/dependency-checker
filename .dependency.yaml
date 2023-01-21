@@ -1,8 +1,0 @@
-dependency:
-  files:
-    - pom.xml
-  black-list:
-    - groupId: junit
-    - groupId: com.alibaba
-      artifactId: fastjson
-      version:

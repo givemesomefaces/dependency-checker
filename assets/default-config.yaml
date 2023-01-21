@@ -1,7 +1,0 @@
-dependency:
-  files:
-    - pom.xml
-  black-list:
-    - groupId:
-      artifactId:
-      version:
