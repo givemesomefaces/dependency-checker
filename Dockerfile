@@ -27,7 +27,7 @@ RUN apk add --no-cache make curl && make linux
 
 FROM alpine:3 AS bin
 
-COPY --from=build /dep-eye/bin/linux/dep-eye /bin/dep-eye
+COPY --from=build /dep-eye/bin/linux/dep-eye /bin/linux/dep-eye
 
 # Go
 COPY --from=build /usr/local/go/bin/go /usr/local/go/bin/go
@@ -37,4 +37,4 @@ RUN apk add --no-cache bash gcc musl-dev npm cargo
 
 WORKDIR /github/workspace/
 
-ENTRYPOINT ["/bin/dep-eye"]
+ENTRYPOINT ["/bin/linux/dep-eye"]
