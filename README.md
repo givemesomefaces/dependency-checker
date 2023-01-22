@@ -1,11 +1,11 @@
 # eye
 A little tool to check dependencies
 
-## How to use
+## Usage
+You can use this tool in Github Action, Gitlab CI or local machine.
 
-
-### download [release](https://github.com/lv-lifeng/eye/releases)
-Add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
+### Download [release](https://github.com/lv-lifeng/eye/releases)
+Download binaries `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
 ```yaml
 dependency:
   files:
@@ -24,9 +24,9 @@ or add `%PATH%/eye/bin/linux` to the environment variable and execute the follow
 ```shell
 dep-eye dependency(d/dep) -c /User/test.yaml check
 ```
-if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `dependency-default.yaml` will be used,
+if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `dependency-default.yaml` will be used.
 
-### compile from source
+### Compile from source
 ```shell
 git clone git@github.com:lv-lifeng/eye.git
 cd eye
@@ -34,7 +34,7 @@ make build
 ```
 the command same as [download release](#download-releasehttpsgithubcomlv-lifengeyereleases)
 
-### check result
+### Check result
 ```shell
 dep-eye d check
 INFO Loading configuration from file: .dependency.yaml 
