@@ -6,7 +6,7 @@ You can use this tool in GitHub Actions, Gitlab CI or local machine.
 
 
 ## GitHub Actions
-Add `.dependency.yaml` file to the root directory of your project
+Add `.dependency.yaml` file to the root directory of your project and add the following.
 ```yaml
 dependency:
   files:
