@@ -1,11 +1,12 @@
 # eye
-A little tool to check dependencies
+A little tool to check dependencies by configuring a dependency blacklist.
 
 ## Usage
-You can use this tool in Github Action, Gitlab CI or local machine.
+You can use this tool in GitHub Actions, Gitlab CI or local machine.
 
-### Download [release](https://github.com/lv-lifeng/eye/releases)
-Download binary file `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
+
+### GitHub Actions
+Add `.dependency.yaml` file to the root directory of your project
 ```yaml
 dependency:
   files:
@@ -16,7 +17,33 @@ dependency:
       artifactId: fastjson
       version:
 ```
-Execute the following command in specified directory
+and add the following to GHA `workflows`
+```yaml
+- name: Dependency Eye
+  uses: lv-lifeng/eye@latestTag
+  #with:
+    #log: debug # optional: set the log level. The default value is `info`.
+    #config: .dependency.yaml # optional: set the config file. The default value is `.dependency.yaml`.
+    #token: # optional: the token that dependency eye uses when it needs to comment on the pull request. Set to empty ("") to disable commenting on pull request. The default value is ${{ github.token }}
+    #mode: # optional: Which mode Dep-Eye should be run in. The default value is `check`.
+```
+### Gitlab CI
+First, dep-eye commands need to be configured in gitlab runner.
+```yaml
+dep-check-job:       # job name.
+  tags: [dep_check] # gitlab runner tag.
+  rules:
+    # trigger condition.
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'main'
+  script:
+    - dep-eye d check
+```
+
+### Other
+#### Download [release](https://github.com/lv-lifeng/eye/releases)
+Download binary file `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
+
+Execute the following command in specified directory.
 ```shell
 %PATH%/eye/bin/linux/dep-eye dependency(d/dep) -c /User/test.yaml check
 ```
@@ -26,7 +53,7 @@ dep-eye dependency(d/dep) -c /User/test.yaml check
 ```
 if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `dependency-default.yaml` will be used.
 
-### Compile from source
+#### Compile from source
 ```shell
 git clone git@github.com:lv-lifeng/eye.git
 cd eye

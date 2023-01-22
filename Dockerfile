@@ -15,8 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# TODO: minimize the docker image size, now 524MB !!!
-
 FROM golang:1.18-alpine AS build
 
 WORKDIR /dep-eye
