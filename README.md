@@ -5,7 +5,7 @@ A little tool to check dependencies by configuring a dependency blacklist.
 You can use this tool in GitHub Actions, Gitlab CI or local machine.
 
 
-### GitHub Actions
+## GitHub Actions
 Add `.dependency.yaml` file to the root directory of your project
 ```yaml
 dependency:
@@ -27,7 +27,7 @@ and add the following to GHA `workflows`
     #token: # optional: the token that dependency eye uses when it needs to comment on the pull request. Set to empty ("") to disable commenting on pull request. The default value is ${{ github.token }}
     #mode: # optional: Which mode Dep-Eye should be run in. The default value is `check`.
 ```
-### Gitlab CI
+## Gitlab CI
 First, dep-eye commands need to be configured in gitlab runner.
 ```yaml
 dep-check-job:       # job name.
@@ -39,21 +39,19 @@ dep-check-job:       # job name.
     - dep-eye d check
 ```
 
-### Other
-#### Download [release](https://github.com/lv-lifeng/eye/releases)
-Download binary file `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
-
-Execute the following command in specified directory.
+## Other
+### Download [release](https://github.com/lv-lifeng/eye/releases)
+Download binary file `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/other/dependency.yaml`), execute the following command in specified directory.
 ```shell
-%PATH%/eye/bin/linux/dep-eye dependency(d/dep) -c /User/test.yaml check
+%PATH%/eye/bin/linux/dep-eye dependency(d/dep) -c /User/other/dependency.yaml check
 ```
 or add `%PATH%/eye/bin/linux` to the environment variable and execute the following command everywhere.
 ```shell
-dep-eye dependency(d/dep) -c /User/test.yaml check
+dep-eye dependency(d/dep) -c /User/other/dependency.yaml check
 ```
 if the `-c` parameter is not specified and the current directory does not have `.dependency.yaml` file, then `dependency-default.yaml` will be used.
 
-#### Compile from source
+### Compile from source
 ```shell
 git clone git@github.com:lv-lifeng/eye.git
 cd eye
@@ -61,7 +59,7 @@ make build
 ```
 the command same as [download release](#download-releasehttpsgithubcomlv-lifengeyereleases)
 
-### Check result
+## Check result
 ```shell
 dep-eye d check
 INFO Loading configuration from file: .dependency.yaml 
