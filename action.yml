@@ -31,13 +31,12 @@ inputs:
     default: .dependency.yaml
   mode:
     description: |
-      Which mode License Eye should be run in. Choices are `check` or `resolve`. The
-      default value is `check`.
+      Which mode Dependency Eye should be run in. The default value is `check`.
     required: false
     default: check
 runs:
   using: docker
-  image: ../Dockerfile
+  image: Dockerfile
   args:
     - -v
     - ${{ inputs.log }}
