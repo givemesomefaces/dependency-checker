@@ -5,7 +5,7 @@ A little tool to check dependencies
 You can use this tool in Github Action, Gitlab CI or local machine.
 
 ### Download [release](https://github.com/lv-lifeng/eye/releases)
-Download binaries `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
+Download binary file `Assets/eye.zip`, and add `.dependency.yaml` file to the root directory of your project or the other specified directory(e.g. `/User/test.yaml`), and add the following.
 ```yaml
 dependency:
   files:
