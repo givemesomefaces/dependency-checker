@@ -55,8 +55,6 @@ type Config interface {
 func NewConfigFromFile(filename string) (Config, error) {
 	var err error
 	var bytes []byte
-	var depEyeAbsPath string
-	var eyeAbsPath string
 
 	// attempt to read configuration from specified file
 	logger.Log.Infoln("Loading configuration from file:", filename)
@@ -68,10 +66,11 @@ func NewConfigFromFile(filename string) (Config, error) {
 	if os.IsNotExist(err) {
 		logger.Log.Infof("Config file %s does not exist, using the default config: eye/dependency-default.yaml", filename)
 
-		if depEyeAbsPath, err = exec.LookPath(os.Args[0]); err != nil {
+		var depEyeAbsPath string
+		if depEyeAbsPath, err = exec.LookPath(os.Args[0]); err != nil && {
 			return nil, err
 		}
-		if bytes, err = os.ReadFile(path.Join(getEyeAbsPath(eyeAbsPath, depEyeAbsPath), "dependency-default.yaml")); err != nil && !os.IsNotExist(err) {
+		if bytes, err = os.ReadFile(path.Join(getEyeAbsPath(depEyeAbsPath), "dependency-default.yaml")); err != nil && !os.IsNotExist(err) {
 			return nil, err
 		}
 	}
@@ -83,12 +82,9 @@ func NewConfigFromFile(filename string) (Config, error) {
 	return config, nil
 }
 
-func getEyeAbsPath(eyeAbsPath string, depEyeAbsPath string) string {
+func getEyeAbsPath(depEyeAbsPath string) string {
 	compile := regexp.MustCompile("/bin/(darwin|linux|windows)/dep-eye")
-	eyePathIndex := compile.FindAllStringIndex(depEyeAbsPath, 1)
-	for _, index := range eyePathIndex {
-		eyeAbsPath = depEyeAbsPath[0:index[0]]
-		break
-	}
-	return eyeAbsPath
+	eyePathIndexes := compile.FindAllStringIndex(depEyeAbsPath, -1)
+	lastEyePathIndex := eyePathIndexes[len(eyePathIndexes)-1]
+	return depEyeAbsPath[0:lastEyePathIndex[0]]
 }
