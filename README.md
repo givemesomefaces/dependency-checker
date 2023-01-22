@@ -72,4 +72,4 @@ com.alibaba:fastjson | org.apache.rocketmq:rocketmq-acl:4.9.2 -> org.apache.rock
 ERROR found 1 dependencies hit the blacklist 
 ```
 `Black-List:` dependence in the blacklist  
-`Path：` parent dependency of dependence in the blacklist
+`Path:` parent dependency of dependence in the blacklist
