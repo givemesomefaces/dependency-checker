@@ -22,8 +22,8 @@ import (
 	"eye/pkg/deps"
 	"gopkg.in/yaml.v3"
 	"os"
-	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 )
 
@@ -67,7 +67,7 @@ func NewConfigFromFile(filename string) (Config, error) {
 		logger.Log.Infof("Config file %s does not exist, using the default config: eye/dependency-default.yaml", filename)
 
 		var depEyeAbsPath string
-		if depEyeAbsPath, err = exec.LookPath(os.Args[0]); err != nil {
+		if depEyeAbsPath, err = filepath.Abs(os.Args[0]); err != nil {
 			return nil, err
 		}
 		if bytes, err = os.ReadFile(path.Join(getEyeAbsPath(depEyeAbsPath), "dependency-default.yaml")); err != nil && !os.IsNotExist(err) {
