@@ -1,4 +1,4 @@
-module eye
+module github.com/lvlifeng/eye
 
 go 1.18
 

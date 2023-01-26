@@ -18,8 +18,8 @@
 package config
 
 import (
-	"eye/internal/logger"
-	"eye/pkg/deps"
+	"github.com/lvlifeng/eye/internal/logger"
+	"github.com/lvlifeng/eye/pkg/deps"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"

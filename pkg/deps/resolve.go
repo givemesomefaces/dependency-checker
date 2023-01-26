@@ -18,8 +18,8 @@
 package deps
 
 import (
-	"eye/internal/logger"
 	"fmt"
+	"github.com/lvlifeng/eye/internal/logger"
 )
 
 type Resolver interface {

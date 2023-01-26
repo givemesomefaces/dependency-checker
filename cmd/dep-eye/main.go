@@ -20,8 +20,8 @@ package main
 import (
 	"os"
 
-	"eye/commands"
-	"eye/internal/logger"
+	"github.com/lvlifeng/eye/commands"
+	"github.com/lvlifeng/eye/internal/logger"
 )
 
 func main() {

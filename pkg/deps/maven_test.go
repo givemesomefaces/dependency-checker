@@ -29,8 +29,8 @@ import (
 	"strings"
 	"testing"
 
-	"eye/pkg/config"
-	"eye/pkg/deps"
+	"github.com/lvlifeng/eye/pkg/config"
+	"github.com/lvlifeng/eye/pkg/deps"
 )
 
 func TestCanResolvePomFile(t *testing.T) {

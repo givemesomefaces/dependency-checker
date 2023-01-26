@@ -18,8 +18,8 @@
 package commands
 
 import (
-	"eye/internal/logger"
-	"eye/pkg/config"
+	"github.com/lvlifeng/eye/internal/logger"
+	"github.com/lvlifeng/eye/pkg/config"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

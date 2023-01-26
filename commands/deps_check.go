@@ -18,9 +18,9 @@
 package commands
 
 import (
-	"eye/internal/logger"
-	"eye/pkg/deps"
 	"fmt"
+	"github.com/lvlifeng/eye/internal/logger"
+	"github.com/lvlifeng/eye/pkg/deps"
 	"github.com/spf13/cobra"
 )
 
