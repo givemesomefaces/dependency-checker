@@ -22,32 +22,29 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"golang.org/x/net/html/charset"
-
 	"github.com/lvlifeng/eye/internal/logger"
 )
 
-type MavenPomResolver struct {
+type MavenPomChecker struct {
 	maven string
 	repo  string
 }
 
-// CanResolve determine whether the file can be resolve by name of the file
-func (resolver *MavenPomResolver) CanResolve(mavenPomFile string) bool {
+// CanCheck determine whether the file can be checked by name of the file
+func (resolver *MavenPomChecker) CanCheck(mavenPomFile string) bool {
 	base := filepath.Base(mavenPomFile)
 	logger.Log.Debugln("Base name:", base)
-	return base == "pom.xml"
+	return base == mavenPom
 }
 
-// Resolve resolves licenses of all dependencies declared in the pom.xml file.
-func (resolver *MavenPomResolver) Resolve(mavenPomFile string, config *ConfigDeps, report *Report) error {
+// Check all dependencies declared in the pom.xml file.
+func (resolver *MavenPomChecker) Check(mavenPomFile string, config *ConfigDeps, report *Report) error {
 	if err := os.Chdir(filepath.Dir(mavenPomFile)); err != nil {
 		return err
 	}
@@ -56,24 +53,24 @@ func (resolver *MavenPomResolver) Resolve(mavenPomFile string, config *ConfigDep
 		return err
 	}
 
-	deps, err := resolver.LoadDependencies(config)
+	deps, err := resolver.LoadDependencies()
 	if err != nil {
 		// attempt to download dependencies
 		if err = resolver.DownloadDeps(); err != nil {
 			return fmt.Errorf("dependencies download error")
 		}
 		// load again
-		deps, err = resolver.LoadDependencies(config)
+		deps, err = resolver.LoadDependencies()
 		if err != nil {
 			return err
 		}
 	}
 
-	return resolver.ResolveDependencies(deps, config, report)
+	return resolver.CheckDependencies(deps, config, report)
 }
 
-// CheckMVN check available maven tools, find local repositories and download all dependencies
-func (resolver *MavenPomResolver) CheckMVN() error {
+// CheckMVN check available mavenPom tools, find local repositories and download all dependencies
+func (resolver *MavenPomChecker) CheckMVN() error {
 	if err := resolver.FindMaven("./mvnw"); err == nil {
 		logger.Log.Debugln("mvnw is found, will use mvnw by default")
 	} else if err := resolver.FindMaven("mvn"); err != nil {
@@ -87,7 +84,7 @@ func (resolver *MavenPomResolver) CheckMVN() error {
 	return nil
 }
 
-func (resolver *MavenPomResolver) FindMaven(execName string) error {
+func (resolver *MavenPomChecker) FindMaven(execName string) error {
 	if _, err := exec.Command(execName, "--version").Output(); err != nil {
 		return err
 	}
@@ -96,7 +93,7 @@ func (resolver *MavenPomResolver) FindMaven(execName string) error {
 	return nil
 }
 
-func (resolver *MavenPomResolver) FindLocalRepository() error {
+func (resolver *MavenPomChecker) FindLocalRepository() error {
 	output, err := exec.Command(resolver.maven, "help:evaluate", "-Dexpression=settings.localRepository", "-q", "-DforceStdout").Output() // #nosec G204
 	if err != nil {
 		return err
@@ -106,7 +103,7 @@ func (resolver *MavenPomResolver) FindLocalRepository() error {
 	return nil
 }
 
-func (resolver *MavenPomResolver) DownloadDeps() error {
+func (resolver *MavenPomChecker) DownloadDeps() error {
 	cmd := exec.Command(resolver.maven, "dependency:resolve") // #nosec G204
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -115,7 +112,7 @@ func (resolver *MavenPomResolver) DownloadDeps() error {
 	if err == nil {
 		return nil
 	}
-	// the failure may be caused by the lack of sub modules, try to install it
+	// the failure may be caused by the lack of submodules, try to install it
 	install := exec.Command(resolver.maven, "clean", "install", "-Dcheckstyle.skip=true", "-Drat.skip=true", "-Dmaven.test.skip=true") // #nosec G204
 	install.Stdout = os.Stdout
 	install.Stderr = os.Stderr
@@ -123,7 +120,7 @@ func (resolver *MavenPomResolver) DownloadDeps() error {
 	return install.Run()
 }
 
-func (resolver *MavenPomResolver) LoadDependencies(config *ConfigDeps) ([]*Dependency, error) {
+func (resolver *MavenPomChecker) LoadDependencies() ([]*Dependency, error) {
 	buf := bytes.NewBuffer(nil)
 
 	cmd := exec.Command(resolver.maven, "dependency:tree") // #nosec G204
@@ -136,12 +133,12 @@ func (resolver *MavenPomResolver) LoadDependencies(config *ConfigDeps) ([]*Depen
 		return nil, err
 	}
 
-	deps := LoadDependencies(buf.Bytes(), config)
+	deps := LoadDependencies(buf.Bytes())
 	return deps, nil
 }
 
-// ResolveDependencies resolves the licenses of the given dependencies
-func (resolver *MavenPomResolver) ResolveDependencies(deps []*Dependency, config *ConfigDeps, report *Report) error {
+// CheckDependencies checks the dependencies of the given dependencies
+func (resolver *MavenPomChecker) CheckDependencies(deps []*Dependency, config *ConfigDeps, report *Report) error {
 	for _, dep := range deps {
 		func() {
 			state := NotFound
@@ -154,7 +151,7 @@ func (resolver *MavenPomResolver) ResolveDependencies(deps []*Dependency, config
 	return nil
 }
 
-func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Dependency, report *Report) error {
+func (resolver *MavenPomChecker) CheckBlackList(config *ConfigDeps, dep *Dependency, report *Report) error {
 	hit := false
 	var hitBlackDep ConfigDependency
 	for _, blackDep := range config.BlackList {
@@ -192,80 +189,14 @@ func (resolver *MavenPomResolver) CheckBlackList(config *ConfigDeps, dep *Depend
 	}
 	if hit {
 		report.Resolve(&HitResult{
-			BlackDep:  hitBlackDep.Name(),
+			BlackDep:  hitBlackDep.Name(mavenPom),
 			ParentDep: dep.Parent,
 		})
 	}
 	return nil
 }
 
-func (resolver *MavenPomResolver) ReadLicensesFromPom(pomFile string) (*PomFile, error) {
-	file, err := os.Open(pomFile)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = file.Close() }()
-
-	dec := xml.NewDecoder(file)
-	dec.CharsetReader = charset.NewReaderLabel
-
-	pom := new(PomFile)
-	err = dec.Decode(pom)
-	if err != nil {
-		return nil, err
-	}
-
-	return pom, nil
-}
-
-func (resolver *MavenPomResolver) ReadHeaderCommentsFromPom(pomFile string) (string, error) {
-	file, err := os.Open(pomFile)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = file.Close() }()
-
-	var comments string
-
-	dec := xml.NewDecoder(file)
-	dec.CharsetReader = charset.NewReaderLabel
-loop:
-	for {
-		tok, err := dec.Token()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return "", err
-		}
-
-		switch tok := tok.(type) {
-		// search header only
-		case xml.StartElement:
-			break loop
-		case xml.Comment:
-			comments += string(tok.Copy())
-		}
-	}
-
-	if SeemLicense(comments) {
-		return comments, nil
-	}
-
-	return "", nil
-}
-
-var (
-	reMaybeLicense                = regexp.MustCompile(`(?i)licen[sc]e|copyright|copying$`)
-	reHaveManifestFile            = regexp.MustCompile(`(?i)^(\S*/)?manifest\.MF$`)
-	reSearchLicenseInManifestFile = regexp.MustCompile(`(?im)^.*?licen[cs]e.*?(http.+)`)
-)
-
-// SeemLicense determine whether the content of the file may be a license file
-func SeemLicense(content string) bool {
-	return reMaybeLicense.MatchString(content)
-}
-
-func LoadDependencies(data []byte, config *ConfigDeps) []*Dependency {
+func LoadDependencies(data []byte) []*Dependency {
 	depsTree := LoadDependenciesTree(data)
 
 	cnt := 0
@@ -296,7 +227,7 @@ func LoadDependenciesTree(data []byte) []*Dependency {
 		level int
 	}
 
-	stack := []Elem{}
+	var stack []Elem
 	unique := make(map[string]struct{})
 
 	reFind := regexp.MustCompile(`(?im)^.*? ([| ]*)(\+-|\\-) (?P<gid>\b.+?):(?P<aid>\b.+?):(?P<packaging>\b.+)(:\b.+)?:(?P<Version>\b.+):(?P<scope>\b.+?)(?P<optional>\b.+?)?$`) //nolint:lll // can't break down regex
@@ -446,7 +377,7 @@ type PomFile struct {
 
 // Raw return raw data
 func (pom *PomFile) Raw() string {
-	contents := []string{}
+	var contents []string
 	for _, l := range pom.Licenses {
 		contents = append(contents, l.Raw())
 	}

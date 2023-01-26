@@ -22,29 +22,29 @@ import (
 	"github.com/lvlifeng/eye/internal/logger"
 )
 
-type Resolver interface {
-	CanResolve(string) bool
-	Resolve(string, *ConfigDeps, *Report) error
+type Checker interface {
+	CanCheck(string) bool
+	Check(string, *ConfigDeps, *Report) error
 }
 
-var Resolvers = []Resolver{
-	new(MavenPomResolver),
+var Checkers = []Checker{
+	new(MavenPomChecker),
 }
 
 func Resolve(config *ConfigDeps, report *Report) error {
 resolveFile:
 	for _, file := range config.Files {
-		for _, resolver := range Resolvers {
-			if !resolver.CanResolve(file) {
+		for _, checker := range Checkers {
+			if !checker.CanCheck(file) {
 				continue
 			}
 			logger.Log.Infof("Start checking dependencies, please wait!")
-			if err := resolver.Resolve(file, config, report); err != nil {
+			if err := checker.Check(file, config, report); err != nil {
 				return err
 			}
 			continue resolveFile
 		}
-		return fmt.Errorf("unable to find a resolver to resolve dependency declaration file: %v", file)
+		return fmt.Errorf("unable to find a checker to check dependency declaration file: %v", file)
 	}
 	return nil
 }

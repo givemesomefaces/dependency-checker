@@ -25,9 +25,7 @@ import (
 	"strings"
 )
 
-type SpdxID string
-
-// HitResult is a single item that represents a resolved dependency license.
+// HitResult is a single item that represents a dependency checked.
 type HitResult struct {
 	BlackDep  string
 	ParentDep string
@@ -38,7 +36,7 @@ type Report struct {
 	Hit []*HitResult
 }
 
-// Resolve marks the dependency's license is resolved.
+// Resolve marks the dependency checked.
 func (report *Report) Resolve(result *HitResult) {
 	if result.ParentDep == "" {
 		result.ParentDep = "-"

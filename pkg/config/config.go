@@ -22,6 +22,7 @@ import (
 	"github.com/lvlifeng/eye/pkg/deps"
 	"gopkg.in/yaml.v3"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -64,13 +65,16 @@ func NewConfigFromFile(filename string) (Config, error) {
 	}
 
 	if os.IsNotExist(err) {
-		logger.Log.Infof("Config file %s does not exist, using the default config: eye/dependency-default.yaml", filename)
-
-		var depEyeAbsPath string
-		if depEyeAbsPath, err = filepath.Abs(os.Args[0]); err != nil {
+		logger.Log.Infof("Config file %s does not exist, using the default config: dependency-default.yaml", filename)
+		var eyeAbsPath string
+		if eyeAbsPath, err = EyeAbsPath(); err != nil {
 			return nil, err
 		}
-		if bytes, err = os.ReadFile(path.Join(getEyeAbsPath(depEyeAbsPath), "dependency-default.yaml")); err != nil && !os.IsNotExist(err) {
+		if eyeAbsPath == "" {
+			logger.Log.Infof("Can not find dep-eye command, please check environmental variable!")
+		}
+		if bytes, err = os.ReadFile(path.Join(eyeAbsPath, "dependency-default.yaml")); err != nil &&
+			!os.IsNotExist(err) {
 			return nil, err
 		}
 	}
@@ -82,9 +86,26 @@ func NewConfigFromFile(filename string) (Config, error) {
 	return config, nil
 }
 
-func getEyeAbsPath(depEyeAbsPath string) string {
+// EyeAbsPath find the root directory of eye when user execute dep-eye command.
+func EyeAbsPath() (string, error) {
 	compile := regexp.MustCompile("/bin/(darwin|linux|windows)/dep-eye")
+
+	var depEyeAbsPath string
+	var err error
+	// find the root directory of dep-eye command from "../../dep-eye d check"
+	if depEyeAbsPath, err = filepath.Abs(os.Args[0]); err != nil {
+		return "", err
+	}
+	if !compile.MatchString(depEyeAbsPath) {
+		// find the root directory of dep-eye command from environmental variable. e.g. "dep-eye d check"
+		if depEyeAbsPath, err = exec.LookPath(os.Args[0]); err != nil {
+			return "", err
+		}
+	}
 	eyePathIndexes := compile.FindAllStringIndex(depEyeAbsPath, -1)
+	if eyePathIndexes == nil {
+		return "", err
+	}
 	lastEyePathIndex := eyePathIndexes[len(eyePathIndexes)-1]
-	return depEyeAbsPath[0:lastEyePathIndex[0]]
+	return depEyeAbsPath[0:lastEyePathIndex[0]], nil
 }

@@ -34,7 +34,7 @@ import (
 )
 
 func TestCanResolvePomFile(t *testing.T) {
-	resolver := new(deps.MavenPomResolver)
+	resolver := new(deps.MavenPomChecker)
 	for _, test := range []struct {
 		fileName string
 		exp      bool
@@ -44,9 +44,9 @@ func TestCanResolvePomFile(t *testing.T) {
 		{"log4j-1.2.12.pom", false},
 		{".pom", false},
 	} {
-		b := resolver.CanResolve(test.fileName)
+		b := resolver.CanCheck(test.fileName)
 		if b != test.exp {
-			t.Errorf("MavenPomResolver.CanResolve(\"%v\") = %v, want %v", test.fileName, b, test.exp)
+			t.Errorf("MavenPomChecker.CanCheck(\"%v\") = %v, want %v", test.fileName, b, test.exp)
 		}
 	}
 }
@@ -113,7 +113,7 @@ func copy(assetDir, destination string) error {
 }
 
 func TestResolveMaven(t *testing.T) {
-	resolver := new(deps.MavenPomResolver)
+	checker := new(deps.MavenPomChecker)
 
 	for _, test := range []struct {
 		workingDir string
@@ -135,9 +135,9 @@ func TestResolveMaven(t *testing.T) {
 		}
 
 		pomFile := filepath.Join(test.workingDir, "pom.xml")
-		if resolver.CanResolve(pomFile) {
+		if checker.CanCheck(pomFile) {
 			report := deps.Report{}
-			if err := resolver.Resolve(pomFile, configFromFile.Dependencies(), &report); err != nil {
+			if err := checker.Check(pomFile, configFromFile.Dependencies(), &report); err != nil {
 				t.Error(err)
 				return
 			}

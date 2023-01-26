@@ -23,18 +23,38 @@ import (
 	"strings"
 )
 
+var (
+	mavenPom  = "pom.xml"
+	golangMod = "go.mod"
+)
+
 type ConfigDeps struct {
 	BlackList []ConfigDependency `yaml:"black-list"`
 	Files     []string           `yaml:"files"`
 }
 
 type ConfigDependency struct {
+	// mavenPom project
 	GroupId    string `yaml:"groupId"`
 	ArtifactId string `yaml:"artifactId"`
 	Version    string `yaml:"version"`
+
+	// go project
+	Path string `yaml:"path"`
 }
 
-func (dep *ConfigDependency) Name() string {
+func (dep *ConfigDependency) Name(project string) string {
+	var names []string
+	if project == mavenPom {
+		names = dep.MavenProjectName()
+	}
+	if project == golangMod {
+		names = dep.GolangProjectName()
+	}
+	return strings.Join(names, ":")
+}
+
+func (dep *ConfigDependency) MavenProjectName() []string {
 	var names []string
 	if dep.GroupId != "" {
 		names = append(names, dep.GroupId)
@@ -45,7 +65,18 @@ func (dep *ConfigDependency) Name() string {
 	if dep.Version != "" {
 		names = append(names, dep.Version)
 	}
-	return strings.Join(names, ":")
+	return names
+}
+
+func (dep *ConfigDependency) GolangProjectName() []string {
+	var names []string
+	if dep.Path != "" {
+		names = append(names, dep.GroupId)
+	}
+	if dep.Version != "" {
+		names = append(names, dep.Version)
+	}
+	return names
 }
 func (config *ConfigDeps) Finalize(configFile string) error {
 	_, err := filepath.Abs(configFile)
