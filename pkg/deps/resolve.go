@@ -31,7 +31,7 @@ var Checkers = []Checker{
 	new(MavenPomChecker),
 }
 
-func Resolve(config *ConfigDeps, report *Report) error {
+func Check(config *ConfigDeps, report *Report) error {
 resolveFile:
 	for _, file := range config.Files {
 		for _, checker := range Checkers {

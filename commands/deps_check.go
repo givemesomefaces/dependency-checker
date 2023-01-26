@@ -33,7 +33,7 @@ var DepsCheckCommand = &cobra.Command{
 
 		configDeps := Config.Dependencies()
 		if len(configDeps.BlackList) != 0 {
-			if err := deps.Resolve(configDeps, &report); err != nil {
+			if err := deps.Check(configDeps, &report); err != nil {
 				return err
 			}
 		}

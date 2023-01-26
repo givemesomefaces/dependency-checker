@@ -36,8 +36,8 @@ type Report struct {
 	Hit []*HitResult
 }
 
-// Resolve marks the dependency checked.
-func (report *Report) Resolve(result *HitResult) {
+// Append marks the dependency checked.
+func (report *Report) Append(result *HitResult) {
 	if result.ParentDep == "" {
 		result.ParentDep = "-"
 	}

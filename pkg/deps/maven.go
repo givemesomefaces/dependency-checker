@@ -188,7 +188,7 @@ func (resolver *MavenPomChecker) CheckBlackList(config *ConfigDeps, dep *Depende
 		}
 	}
 	if hit {
-		report.Resolve(&HitResult{
+		report.Append(&HitResult{
 			BlackDep:  hitBlackDep.Name(mavenPom),
 			ParentDep: dep.Parent,
 		})
