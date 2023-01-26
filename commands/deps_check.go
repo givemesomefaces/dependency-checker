@@ -37,7 +37,7 @@ var DepsCheckCommand = &cobra.Command{
 				return err
 			}
 		}
-		logger.Log.Infof("Checking dependencies completed!")
+		logger.Log.Infof("Dependencies check completed!")
 		if len(report.Hit) != 0 {
 			fmt.Println(report.String())
 			return fmt.Errorf("found %d dependencies hit the blacklist", len(report.Hit))
