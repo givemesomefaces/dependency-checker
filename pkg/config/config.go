@@ -18,6 +18,7 @@
 package config
 
 import (
+	"errors"
 	"github.com/lvlifeng/eye/internal/logger"
 	"github.com/lvlifeng/eye/pkg/deps"
 	"gopkg.in/yaml.v3"
@@ -70,9 +71,6 @@ func NewConfigFromFile(filename string) (Config, error) {
 		if eyeAbsPath, err = EyeAbsPath(); err != nil {
 			return nil, err
 		}
-		if eyeAbsPath == "" {
-			logger.Log.Infof("Can not find dep-eye command, please check environmental variable!")
-		}
 		if bytes, err = os.ReadFile(path.Join(eyeAbsPath, "dependency-default.yaml")); err != nil &&
 			!os.IsNotExist(err) {
 			return nil, err
@@ -104,7 +102,7 @@ func EyeAbsPath() (string, error) {
 	}
 	eyePathIndexes := compile.FindAllStringIndex(depEyeAbsPath, -1)
 	if eyePathIndexes == nil {
-		return "", err
+		return "", errors.New("dep-eye command execute failed, please check environmental variable")
 	}
 	lastEyePathIndex := eyePathIndexes[len(eyePathIndexes)-1]
 	return depEyeAbsPath[0:lastEyePathIndex[0]], nil
