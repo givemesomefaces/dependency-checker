@@ -19,6 +19,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"github.com/lvlifeng/eye/internal/logger"
 	"github.com/lvlifeng/eye/pkg/deps"
 	"gopkg.in/yaml.v3"
@@ -74,6 +75,9 @@ func NewConfigFromFile(filename string) (Config, error) {
 		if bytes, err = os.ReadFile(path.Join(eyeAbsPath, "dependency-default.yaml")); err != nil &&
 			!os.IsNotExist(err) {
 			return nil, err
+		}
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("config file dependency-default.yaml does not exist, please check")
 		}
 	}
 
