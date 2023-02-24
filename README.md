@@ -1,5 +1,9 @@
-# eye
-A little tool to check dependencies by configuring a dependency blacklist.
+# eye - a little tool to check dependencies by configuring a dependency blacklist.
+ 
+Supported project types include:
+- [x] Maven
+- [ ] Gradle
+- [ ] ...  
 
 ## Usage
 You can use this tool in GitHub Actions, Gitlab CI or local machine.
