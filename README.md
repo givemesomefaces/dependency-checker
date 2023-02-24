@@ -1,5 +1,6 @@
 # eye - a little tool to check dependencies by configuring a dependency blacklist.
- 
+![](https://komarev.com/ghpvc/?username=itisokey-eye&color=orange&style=flat&label=pv)
+
 Supported project types include:
 - [x] Maven
 - [ ] Gradle
