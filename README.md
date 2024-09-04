@@ -1,5 +1,4 @@
 # eye - a little tool to check dependencies by configuring a dependency blacklist.
-![](https://komarev.com/ghpvc/?username=itisokey-eye&color=orange&style=flat&label=pv)
 
 Supported project types include:
 - [x] Maven
@@ -78,3 +77,5 @@ ERROR found 1 dependencies hit the blacklist
 ```
 `Black-List:` dependence in the blacklist  
 `Path:` parent dependency of dependence in the blacklist
+
+Reference from [skywalking-eyes](https://github.com/apache/skywalking-eyes)
